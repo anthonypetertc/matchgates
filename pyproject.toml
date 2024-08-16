@@ -1,0 +1,13 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "MatchGates"
+authors = [
+    {name = "Anthony P. Thompson", email = "anthony.peter.thompson@pm.me"},
+    ]
+version = "0.1"
+description = "A simulator for pure and noisy matchgate circuits."
+readme = "README.md"
+requires-python = ">=3.10"
