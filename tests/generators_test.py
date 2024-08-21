@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.linalg import expm
 from MatchGates.generators import XY_circuit
-from MatchGates.operators import X, Y, Z, I
-from MatchGates.expectations import exp_from_T
+from MatchGates.operators import X, Y, Z
+from MatchGates.expectations import expectation_from_T
 from MatchGates import (
     ProductState,
     Observable,
@@ -18,7 +18,7 @@ def test_XY():
     n_qubits = 2
     trotter_steps = 1
     circuit = XY_circuit(n_qubits, J, h, dt, trotter_steps)
-    state = ProductState.Neel(even=True, n_qubits=n_qubits)
+    state = ProductState.neel(even=True, n_qubits=n_qubits)
     obs_list = []
     obs_list.append(Observable("XY", [0, 1], n_qubits))
     results = circuit.simulate(obs_list, state)
@@ -31,12 +31,12 @@ def test_XY():
     resXY = evolved_state.conjugate().transpose() @ np.kron(X, Y) @ evolved_state
 
     U = np.kron(RZ, RZ) @ RXXYY @ np.kron(RZ, RZ)
-    mg = MatchGate.fromUnitary(U)
+    mg = MatchGate.from_unitary(U)
     amg = AppliedMatchGate(mg, n_qubits=2, acts_on=[0, 1])
     T = amg.T
-    Tres = exp_from_T([1, 3], T, state)
+    Tres = expectation_from_T([1, 3], T, state)
     assert np.isclose(resXY, -1j * Tres)
     Tcirc = circuit.T
-    circ1 = exp_from_T([1, 3], Tcirc, state)
+    circ1 = expectation_from_T([1, 3], Tcirc, state)
     assert np.isclose(resXY, -1j * circ1)
     assert np.isclose(resXY, results[("XY", (0, 1))])

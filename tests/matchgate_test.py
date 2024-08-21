@@ -54,7 +54,7 @@ def test_Unitary():
         + param_dict["yx"] * ops.YX
     )
     U = np.round(la.expm(1j * H), 11)
-    mg = MatchGate.fromUnitary(U)
+    mg = MatchGate.from_unitary(U)
     for key in mg.param_dict.keys():
         assert np.isclose(mg.param_dict[key], param_dict[key])
 
@@ -87,7 +87,7 @@ def test_fromAB():
 
     B = U[1:3, 1:3]  # B should be the center-block of the Unitary.
 
-    mg = MatchGate.fromAB(A, B)
+    mg = MatchGate.from_AB(A, B)
     for key in mg.param_dict.keys():
         assert np.isclose(mg.param_dict[key], param_dict[key])
 
@@ -120,7 +120,7 @@ def test_swap():
 
 def test_applied_mg():
     # Test creating an AppliedMatchGate from a MatchGate.
-    mg = MatchGate.randomMatchGate()  # Make a random MatchGate.
+    mg = MatchGate.random_matchgate()  # Make a random MatchGate.
 
     # Now create an AppliedMatchGate and use it to compute observables.
     n_qubits = 4
@@ -128,22 +128,22 @@ def test_applied_mg():
     acts_on = (a, a + 1)
     amg = AppliedMatchGate(mg, n_qubits, acts_on)
     state = ProductState([ops.q0, ops.q0, ops.q0, ops.q0])
-    Z0 = -1j * expec.exp_from_T([0, 1], amg.T, state)
-    Z1 = -1j * expec.exp_from_T([2, 3], amg.T, state)
-    Z2 = -1j * expec.exp_from_T([4, 5], amg.T, state)
-    Z3 = -1j * expec.exp_from_T([6, 7], amg.T, state)
+    Z0 = -1j * expec.expectation_from_T([0, 1], amg.T, state)
+    Z1 = -1j * expec.expectation_from_T([2, 3], amg.T, state)
+    Z2 = -1j * expec.expectation_from_T([4, 5], amg.T, state)
+    Z3 = -1j * expec.expectation_from_T([6, 7], amg.T, state)
 
     # Now do the same by matrix-vector multiplication.
     s0 = np.zeros(16)
     s0[0] = 1
-    I = ops.I
+    Id = ops.Id
     Z = ops.Z
     U = amg.convert_to_unitary()
     psi = U @ s0
-    z0 = reduce(np.kron, [Z, I, I, I])
-    z1 = reduce(np.kron, [I, Z, I, I])
-    z2 = reduce(np.kron, [I, I, Z, I])
-    z3 = reduce(np.kron, [I, I, I, Z])
+    z0 = reduce(np.kron, [Z, Id, Id, Id])
+    z1 = reduce(np.kron, [Id, Z, Id, Id])
+    z2 = reduce(np.kron, [Id, Id, Z, Id])
+    z3 = reduce(np.kron, [Id, Id, Id, Z])
 
     # Check that observables agree.
     assert np.isclose(psi.conj().T @ z0 @ psi, Z0)
@@ -155,8 +155,8 @@ def test_applied_mg():
 def test_single_gate_noise():
     # Test the creation of a noise channel.
     mg_list = []
-    for i in range(4):
-        mg_list.append(MatchGate.randomMatchGate())
+    for _ in range(4):
+        mg_list.append(MatchGate.random_matchgate())
     probabilities = np.random.rand(5)
     probabilities = (probabilities / sum(probabilities)).tolist()
     id_prob = probabilities[0]
@@ -164,5 +164,5 @@ def test_single_gate_noise():
     # Make the noise channel.
     sgn = SingleGateNoise(list(zip(mg_list, probabilities[1:])), id_prob)
     assert sgn.probabilities == probabilities[1:]
-    assert sgn.ops == mg_list
+    assert sgn.scaled_kraus_ops == mg_list
     assert sgn.id_prob == id_prob

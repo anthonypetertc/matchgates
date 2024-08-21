@@ -8,7 +8,7 @@ q0 = ops.q0
 Z = ops.Z
 X = ops.X
 Y = ops.Y
-I = ops.I
+Id = ops.Id
 
 
 def test_obs():
@@ -24,7 +24,6 @@ def test_obs():
 
 
 def test_computation_of_observables():
-
     obs = Observable("YY", [0, 1], 2)
 
     theta = 0.13
@@ -54,8 +53,8 @@ def test_computation_of_observables():
         1j
         * (
             theta * np.kron(X, X)
-            + phi * np.kron(Z, I)
-            + phi * np.kron(I, Z)
+            + phi * np.kron(Z, Id)
+            + phi * np.kron(Id, Z)
             + gamma * np.kron(Y, Y)
             + kappa * np.kron(Y, X)
             + beta * np.kron(X, Y)

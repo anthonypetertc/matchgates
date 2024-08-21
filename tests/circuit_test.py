@@ -13,7 +13,7 @@ from MatchGates import (
 )
 
 
-I = ops.I
+Id = ops.Id
 Z = ops.Z
 X = ops.X
 Y = ops.Y
@@ -30,7 +30,7 @@ def test_circuit():
         a = np.random.randint(n_qubits - 1)
         gate_list.append(
             AppliedMatchGate(
-                MatchGate.randomMatchGate(), n_qubits=n_qubits, acts_on=(a, a + 1)
+                MatchGate.random_matchgate(), n_qubits=n_qubits, acts_on=(a, a + 1)
             )
         )
 
@@ -42,10 +42,10 @@ def test_circuit():
     )  # make initial product state |0000>
 
     # Compute expectation values directly using the exp_from_T function.
-    Z0 = -1j * expec.exp_from_T([0, 1], T, state)
-    Z1 = -1j * expec.exp_from_T([2, 3], T, state)
-    Z2 = -1j * expec.exp_from_T([4, 5], T, state)
-    Z3 = -1j * expec.exp_from_T([6, 7], T, state)
+    Z0 = -1j * expec.expectation_from_T([0, 1], T, state)
+    Z1 = -1j * expec.expectation_from_T([2, 3], T, state)
+    Z2 = -1j * expec.expectation_from_T([4, 5], T, state)
+    Z3 = -1j * expec.expectation_from_T([6, 7], T, state)
 
     # Perform the same circuit evolution by matrix-vector multiplication.
     s0 = np.zeros(16)
@@ -53,10 +53,10 @@ def test_circuit():
     ulist = [amg.convert_to_unitary() for amg in circuit.gate_list]
     U = reduce(np.matmul, reversed(ulist))
     psi = U @ s0
-    z0 = reduce(np.kron, [Z, I, I, I])
-    z1 = reduce(np.kron, [I, Z, I, I])
-    z2 = reduce(np.kron, [I, I, Z, I])
-    z3 = reduce(np.kron, [I, I, I, Z])
+    z0 = reduce(np.kron, [Z, Id, Id, Id])
+    z1 = reduce(np.kron, [Id, Z, Id, Id])
+    z2 = reduce(np.kron, [Id, Id, Z, Id])
+    z3 = reduce(np.kron, [Id, Id, Id, Z])
 
     # Compare results.
     assert np.isclose(psi.conj().T @ z0 @ psi, Z0)
@@ -72,11 +72,11 @@ def test_circuit():
     zz03 = Observable("ZZ", [0, 3], 4)
     obs = [z0obs, xx12obs, xy23obs, yx01obs, zz03]
     results_dict = circuit.simulate(obs, state)
-    z0 = reduce(np.kron, [Z, I, I, I])
-    xx12 = reduce(np.kron, [I, X, X, I])
-    xy23 = reduce(np.kron, [I, I, X, Y])
-    yx01 = reduce(np.kron, [Y, X, I, I])
-    zz03 = reduce(np.kron, [Z, I, I, Z])
+    z0 = reduce(np.kron, [Z, Id, Id, Id])
+    xx12 = reduce(np.kron, [Id, X, X, Id])
+    xy23 = reduce(np.kron, [Id, Id, X, Y])
+    yx01 = reduce(np.kron, [Y, X, Id, Id])
+    zz03 = reduce(np.kron, [Z, Id, Id, Z])
 
     # Compare to results of matrix-vector multiplication.
     assert np.isclose(psi.conj().T @ z0 @ psi, results_dict[("Z", (0,))])
@@ -97,7 +97,7 @@ def test_add_noise():
         a = np.random.randint(n_qubits - 1)
         gate_list.append(
             AppliedMatchGate(
-                MatchGate.randomMatchGate(), n_qubits=n_qubits, acts_on=(a, a + 1)
+                MatchGate.random_matchgate(), n_qubits=n_qubits, acts_on=(a, a + 1)
             )
         )
     circuit = Circuit(n_qubits=n_qubits, gate_list=gate_list)
@@ -105,7 +105,7 @@ def test_add_noise():
     # Make the noise model.
     mg_list = []
     for _ in range(4):
-        mg_list.append(MatchGate.randomMatchGate())
+        mg_list.append(MatchGate.random_matchgate())
     probabilities = np.random.rand(5)
     probabilities = (probabilities / sum(probabilities)).tolist()
     id_prob = probabilities[0]
@@ -118,7 +118,7 @@ def test_add_noise():
     # Check that noisy_circuit has all correc gates in the right order and
     # has added correct noise to the gates.
     for gate, noisy_gate in zip(circuit.gate_list, noisy_circuit.noisy_gate_list):
-        assert noisy_gate.amg == gate
+        assert noisy_gate.applied_match_gate == gate
         assert noisy_gate.noise == sgn
 
 
@@ -139,8 +139,8 @@ def test_noisy_circuit():
         1j
         * (
             theta * np.kron(X, X)
-            + phi * np.kron(Z, I)
-            + phi * np.kron(I, Z)
+            + phi * np.kron(Z, Id)
+            + phi * np.kron(Id, Z)
             + gamma * np.kron(Y, Y)
             + kappa * np.kron(Y, X)
             + beta * np.kron(X, Y)
@@ -150,12 +150,12 @@ def test_noisy_circuit():
     n_qubits = 2
     gate_list = []
     gate_list.append(
-        AppliedMatchGate(MatchGate.fromUnitary(U1), n_qubits=n_qubits, acts_on=(0, 1))
+        AppliedMatchGate(MatchGate.from_unitary(U1), n_qubits=n_qubits, acts_on=(0, 1))
     )
     circuit = Circuit(n_qubits=n_qubits, gate_list=gate_list)  # Make circuit.
 
     # Create noise model.
-    mg_list = [MatchGate.fromUnitary(U1)]
+    mg_list = [MatchGate.from_unitary(U1)]
     probabilities = [0.5, 0.5]
     id_prob = probabilities[0]
     sgn = SingleGateNoise(list(zip(mg_list, probabilities[1:])), id_prob)
@@ -166,11 +166,11 @@ def test_noisy_circuit():
     vec[0] = 1
     dm = np.outer(vec, vec)
     for noisy_gate in noisy_circuit.noisy_gate_list:
-        amg = noisy_gate.amg
+        amg = noisy_gate.applied_match_gate
         noise = noisy_gate.noise
         kops = [
             AppliedMatchGate(op, amg.n_qubits, amg.acts_on).convert_to_unitary()
-            for op in noise.ops
+            for op in noise.scaled_kraus_ops
         ]
         probs = noisy_gate.noise.probabilities
         gate = amg.convert_to_unitary()
@@ -182,7 +182,7 @@ def test_noisy_circuit():
                 for prob, kraus in zip(probs, kops)
             ]
         )
-    z0 = reduce(np.kron, [Z, I])
+    z0 = reduce(np.kron, [Z, Id])
     z0_exp = np.trace(z0 @ dm)
 
     Z0 = Observable("Z", qubits=[0], n_qubits=2)

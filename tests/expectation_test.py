@@ -5,7 +5,7 @@ from MatchGates import expectations as expec, operators as ops, ProductState
 X = ops.X
 Y = ops.Y
 Z = ops.Z
-I = ops.I
+Id = ops.Id
 
 q0 = np.array([1, 0], dtype=complex)
 q1 = np.array([0, 1], dtype=complex)
@@ -31,17 +31,17 @@ def test_c_set():
     # Test that we are correctly computing the expectation values of Majorana Fermion
     # Creation operators (c).
     state = ProductState([q0, q0, q0])  # initial state.
-    ex = expec.c_set_exp([1], state)  # c1 - creation op on mode 1.
+    ex = expec.c_set_expectation([1], state)  # c1 - creation op on mode 1.
     assert ex == 0
 
-    ex = expec.c_set_exp([0, 1], state)  # c0c1 - creation ops on mode 0, 1.
+    ex = expec.c_set_expectation([0, 1], state)  # c0c1 - creation ops on mode 0, 1.
     assert np.isclose(ex, 1j)
 
-    ex = expec.c_set_exp([4, 3, 2, 5], state)  # multi-mode expectation values.
+    ex = expec.c_set_expectation([4, 3, 2, 5], state)  # multi-mode expectation values.
     assert np.isclose(ex, 1)
 
     new_state = ProductState([q0, q1, q0])  # Now try it on a different state.
-    ex = expec.c_set_exp([4, 3, 2, 5], new_state)
+    ex = expec.c_set_expectation([4, 3, 2, 5], new_state)
     assert np.isclose(ex, -1)
 
 
@@ -71,15 +71,15 @@ def test_exp_from_T():
 
     T = la.expm(4 * alpha)  # T-matrix.
     state = ProductState([q0, q0])
-    Z0 = -1j * expec.exp_from_T([0, 1], T, state)  # compute expectation value.
+    Z0 = -1j * expec.expectation_from_T([0, 1], T, state)  # compute expectation value.
 
     # Make corresponding Unitary gate.
     U1 = la.expm(
         1j
         * (
             theta * np.kron(X, X)
-            + phi * np.kron(Z, I)
-            + phi * np.kron(I, Z)
+            + phi * np.kron(Z, Id)
+            + phi * np.kron(Id, Z)
             + gamma * np.kron(Y, Y)
             + kappa * np.kron(Y, X)
             + beta * np.kron(X, Y)
@@ -88,7 +88,7 @@ def test_exp_from_T():
     s00 = np.array([1, 0, 0, 0], dtype=complex)
     # Evolution by matrix-vector multiplication.
     ev = U1 @ s00
-    Z0s = ev.conj().T @ np.kron(Z, I) @ ev
+    Z0s = ev.conj().T @ np.kron(Z, Id) @ ev
     assert np.isclose(
         Z0, Z0s
     ), f"Expected results{Z0s}, MatchGate simulator output {Z0}"

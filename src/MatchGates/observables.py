@@ -1,10 +1,38 @@
+"""Module for defining Observable class."""
+
 import numpy as np
 from MatchGates.operators import ProductState
-from MatchGates.expectations import exp_from_T
+from MatchGates.expectations import expectation_from_T
 
 
 class Observable:
+    """
+    Observable class for representing observables.
+
+    Args:
+    name: name of observable.
+    qubits: qubits observable acts on.
+    n_qubits: number of qubits observable acts on.
+
+    Attributes:
+    name: name of observable.
+    qubits: qubits observable acts on.
+    n_qubits: number of qubits observable acts on.
+    majoranas: list of Majorana indices.
+    phase: phase of observable.
+
+    Methods:
+    get_majoranas: get Majorana indices and phase of observable.
+    compute_expectation: compute expectation value of observable on a state.
+    """
+
     def __init__(self, name: str, qubits: list[int], n_qubits: int):
+        """
+        Args:
+        name: name of observable.
+        qubits: qubits observable acts on.
+        n_qubits: number of qubits observable acts on.
+        """
         assert name in set(
             ["Z", "ZZ", "XX", "XY", "YY", "YX"]
         ), "Observable not implemented,\
@@ -27,6 +55,13 @@ class Observable:
         self.majoranas, self.phase = self.get_majoranas()
 
     def get_majoranas(self):
+        """
+        Get Majorana indices and phase of observable.
+
+        Returns:
+        list: list of Majorana indices.
+        complex: phase of observable.
+        """
         if self.name == "Z":
             qubit = self.qubits[0]
             majoranas = [2 * qubit, 2 * qubit + 1]
@@ -60,5 +95,15 @@ class Observable:
         return majoranas, phase
 
     def compute_expectation(self, T: np.ndarray, state: ProductState):
+        """
+        Compute expectation value of observable on a state.
+
+        Args:
+        T: matrix.
+        state: state.
+
+        Returns:
+        float: expectation value.
+        """
         S = self.majoranas
-        return (self.phase * exp_from_T(S, T, state)).real
+        return (self.phase * expectation_from_T(S, T, state)).real
