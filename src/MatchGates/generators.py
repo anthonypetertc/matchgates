@@ -5,14 +5,14 @@ from MatchGates.matchgate import MatchGate, AppliedMatchGate
 
 def XX_YY(J, dt):
     param_dict = MatchGate.empty_param_dict()
-    param_dict["xx"] = J * dt
-    param_dict["yy"] = J * dt
+    param_dict["xx"] = -J * dt
+    param_dict["yy"] = -J * dt
     return MatchGate(param_dict)
 
 def Z(h, dt):
     param_dict = MatchGate.empty_param_dict()
-    param_dict["z1"] = h * dt /2
-    param_dict["z2"] = h * dt / 2
+    param_dict["z1"] = -h * dt /2
+    param_dict["z2"] = -h * dt / 2
     return MatchGate(param_dict)
 
 
@@ -42,7 +42,7 @@ def XY_circuit(n_qubits, J, h, dt, trotter_steps):
 
 def XX(J, dt):
     param_dict = MatchGate.empty_param_dict()
-    param_dict["xx"] = J * dt
+    param_dict["xx"] = -J * dt
     return MatchGate(param_dict)
 
 def Ising_circuit(n_qubits, J, h, dt, trotter_steps):
