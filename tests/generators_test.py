@@ -3,12 +3,13 @@ from scipy.linalg import expm
 from MatchGates.generators import XY_circuit
 from MatchGates.operators import X, Y, Z, I
 from MatchGates.expectations import exp_from_T
-from MatchGates import(
+from MatchGates import (
     ProductState,
     Observable,
     MatchGate,
     AppliedMatchGate,
 )
+
 
 def test_XY():
     J = 0.5
@@ -24,12 +25,12 @@ def test_XY():
 
     init_state = np.zeros(4)
     init_state[2] = 1
-    RZ = expm(-1j * h * dt /2 * Z)
+    RZ = expm(-1j * h * dt / 2 * Z)
     RXXYY = expm(-1j * J * dt * (np.kron(X, X) + np.kron(Y, Y)))
     evolved_state = np.kron(RZ, RZ) @ RXXYY @ np.kron(RZ, RZ) @ init_state
     resXY = evolved_state.conjugate().transpose() @ np.kron(X, Y) @ evolved_state
 
-    U =  np.kron(RZ, RZ) @ RXXYY @ np.kron(RZ, RZ) 
+    U = np.kron(RZ, RZ) @ RXXYY @ np.kron(RZ, RZ)
     mg = MatchGate.fromUnitary(U)
     amg = AppliedMatchGate(mg, n_qubits=2, acts_on=[0, 1])
     T = amg.T
@@ -38,6 +39,4 @@ def test_XY():
     Tcirc = circuit.T
     circ1 = exp_from_T([1, 3], Tcirc, state)
     assert np.isclose(resXY, -1j * circ1)
-    assert np.isclose(resXY, results[("XY", (0,1))])
-
-
+    assert np.isclose(resXY, results[("XY", (0, 1))])
