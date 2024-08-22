@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.linalg as la
-from MatchGates import expectations as expec, operators as ops, ProductState
+from matchgates import expectations as expec, operators as ops, ProductState
 
 X = ops.X
 Y = ops.Y

@@ -2,7 +2,7 @@ import numpy as np
 import scipy.linalg as la
 from functools import reduce
 
-from MatchGates import (
+from matchgates import (
     operators as ops,
     expectations as expec,
     MatchGate,

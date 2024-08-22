@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 import scipy.linalg as la
-from MatchGates import Observable, ProductState, operators as ops
+from matchgates import Observable, ProductState, operators as ops
 
 
 q0 = ops.q0
