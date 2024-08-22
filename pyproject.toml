@@ -11,3 +11,10 @@ version = "0.1"
 description = "A simulator for pure and noisy matchgate circuits."
 readme = "README.md"
 requires-python = ">=3.10"
+
+dependencies = [
+    "numpy>=2.1.0",
+    "scipy>=1.14.1",
+    "pytest >= 8.1.1",
+    "pre-commit"
+]
