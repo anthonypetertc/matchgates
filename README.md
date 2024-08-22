@@ -12,3 +12,4 @@ This is a pure python implementation of matchgate simulation via mapping to free
     pytest
 
 ## Examples
+Examples of running simulations both for pure and noisy matchgate circuits can be found in the examples folder.
