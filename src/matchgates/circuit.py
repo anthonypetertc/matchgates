@@ -13,9 +13,9 @@ class Circuit:
 
     Attributes
     ----------
-    n_qubits: number of qubits circuit acts on.
-    gate_list: list of gates in circuit.
-    T: matrix used for calculating observables.
+    n_qubits (int): number of qubits circuit acts on.
+    gate_list (list[AppliedMatchGate]): list of gates in circuit.
+    T (np.ndarray): matrix used for calculating observables.
 
     Methods
     -------
@@ -113,7 +113,7 @@ class Circuit:
         for obs in observables:
             results_dict[(obs.name, obs.qubits)] = obs.compute_expectation(
                 self.T, state
-            )
+            ).astype(float)
         return results_dict
 
 
