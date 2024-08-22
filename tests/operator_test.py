@@ -1,5 +1,5 @@
 import numpy as np
-from MatchGates import operators as ops
+from matchgates import operators as ops
 
 X = ops.X
 Y = ops.Y

@@ -1,9 +1,9 @@
 import numpy as np
 from scipy.linalg import expm
-from MatchGates.generators import XY_circuit
-from MatchGates.operators import X, Y, Z
-from MatchGates.expectations import expectation_from_T
-from MatchGates import (
+from matchgates.generators import XY_circuit
+from matchgates.operators import X, Y, Z
+from matchgates.expectations import expectation_from_T
+from matchgates import (
     ProductState,
     Observable,
     MatchGate,
