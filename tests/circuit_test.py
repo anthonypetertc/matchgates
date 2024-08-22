@@ -26,7 +26,7 @@ def test_circuit():
     n_gates = 10
     gate_list = []
 
-    for i in range(n_gates):
+    for _ in range(n_gates):
         a = np.random.randint(n_qubits - 1)
         gate_list.append(
             AppliedMatchGate(
