@@ -5,7 +5,7 @@ from numbers import Real
 import numpy as np
 import scipy.linalg as scipy_la
 
-import jax.scipy.linalg as jax_la
+import scipy.linalg as jax_la
 
 from matchgates.operators import X, Y, Id, Z, Z1, Z2, XX, YY, XY, YX
 
