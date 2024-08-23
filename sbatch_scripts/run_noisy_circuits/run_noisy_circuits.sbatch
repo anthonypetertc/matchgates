@@ -1,8 +1,9 @@
 #!/bin/bash
 
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=20000
+#SBATCH --cpus-per-task=32
+#SBATCH --mem=200000
+#SBATCH --exclude-nodes=gh1,gh2
 
 #SBATCH --output=stdout.txt
 #SBATCH --error=stderr.txt
