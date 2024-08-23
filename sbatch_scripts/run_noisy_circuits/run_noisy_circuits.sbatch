@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=200000
-#SBATCH --exclude-nodes=gh1,gh2
+#SBATCH --exclude=gh1,gh2
 
 #SBATCH --output=stdout.txt
 #SBATCH --error=stderr.txt
