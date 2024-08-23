@@ -1,6 +1,7 @@
 """
 Create generators for MatchGate circuits.
 """
+from time import perf_counter
 
 from matchgates.circuit import Circuit
 from matchgates.matchgate import MatchGate, AppliedMatchGate
@@ -54,9 +55,14 @@ def XY_circuit(n_qubits: int, J: float, h: float, dt: float, trotter_steps: int)
     Uxxyy = XX_YY(J, dt)
     Uz1z2 = Z(h, dt)
 
+    avg_gate_creation_time = 0.
+    count = 0
+
     gate_list = []
     qubits = list(range(n_qubits))
-    for _ in range(trotter_steps):
+    for step in range(trotter_steps):
+        print(f"Step {step + 1} / {trotter_steps}")
+        start = perf_counter()
         for i, j in zip(qubits[::2], qubits[1::2]):
             amg = AppliedMatchGate(Uz1z2, n_qubits, [i, j])
             gate_list.append(amg)
@@ -69,6 +75,13 @@ def XY_circuit(n_qubits: int, J: float, h: float, dt: float, trotter_steps: int)
         for i, j in zip(qubits[::2], qubits[1::2]):
             amg = AppliedMatchGate(Uz1z2, n_qubits, [i, j])
             gate_list.append(amg)
+
+        avg_gate_creation_time += perf_counter() - start
+        count += 1
+
+        print(f"Avg. gate creation time per layer: {avg_gate_creation_time / count}")
+
+
     return Circuit(n_qubits, gate_list)
 
 

@@ -3,7 +3,10 @@
 from functools import reduce
 from numbers import Real
 import numpy as np
-import scipy.linalg as la
+import scipy.linalg as scipy_la
+
+import jax.scipy.linalg as jax_la
+
 from matchgates.operators import X, Y, Id, Z, Z1, Z2, XX, YY, XY, YX
 
 
@@ -14,6 +17,7 @@ class MatchGate:
     Attributes:
     param_dict: dictionary of parameters for Pauli generators of the matchgate.
     gate: matrix representation of matchgate.
+    Name (optional): Name of the object
 
     Methods:
     fromUnitary: create a MatchGate object from a unitary matrix.
@@ -24,7 +28,7 @@ class MatchGate:
     is_single_qubit: check if the matchgate is tensor product of single qubit gates.
     """
 
-    def __init__(self, param_dict):
+    def __init__(self, param_dict, name: str=""):
         """
         Args:
         param_dict: dictionary of parameters for Pauli generators of the matchgate.
@@ -43,10 +47,11 @@ class MatchGate:
             + param_dict["xy"] * XY
             + param_dict["yx"] * YX
         )
-        self.gate = np.round(la.expm(1j * H), 11)
+        self.gate = np.round(jax_la.expm(1j * H), 11)
+        self.name = name
 
     @classmethod
-    def from_unitary(cls, U: np.ndarray):
+    def from_unitary(cls, U: np.ndarray, name: str = ""):
         """
         Define a matchgate from a suitable 4x4 Unitary matrix.
         A Unitary is suitable if it can be written in the form:
@@ -75,9 +80,9 @@ class MatchGate:
         A[1, 0] = U[3, 0]
         A[1, 1] = U[3, 3]
         B = U[1:3, 1:3]
-        assert np.isclose(la.det(A), la.det(B))
+        assert np.isclose(jax_la.det(A), jax_la.det(B))
 
-        H = -1j * la.logm(U)
+        H = -1j * scipy_la.logm(U)
         assert np.allclose(H.conj().transpose(), H)
         param_dict = {}
         param_dict["z1"] = 0.25 * np.trace(Z1 @ H)
@@ -87,7 +92,7 @@ class MatchGate:
         param_dict["xy"] = 0.25 * np.trace(XY @ H)
         param_dict["yx"] = 0.25 * np.trace(YX @ H)
 
-        return MatchGate(param_dict)
+        return MatchGate(param_dict, name=name)
 
     @classmethod
     def from_AB(self, A: np.ndarray, B: np.ndarray):
@@ -103,7 +108,7 @@ class MatchGate:
         """
         assert A.shape == (2, 2)
         assert B.shape == (2, 2)
-        assert np.isclose(la.det(A), la.det(B))
+        assert np.isclose(jax_la.det(A), jax_la.det(B))
         U = np.zeros((4, 4), dtype=complex)
         U[0, 0] = A[0, 0]
         U[0, 3] = A[0, 1]
@@ -227,7 +232,8 @@ class AppliedMatchGate:
         alpha[3, 1] = -alpha[1, 3]
         h = np.zeros((2 * n_qubits, 2 * n_qubits), dtype=complex)
         h[2 * k : 2 * k + 4, 2 * k : 2 * k + 4] = alpha
-        T = la.expm(4 * h)
+
+        T = jax_la.expm(4 * h)
         self.T = T
 
     def convert_to_unitary(self):
@@ -298,17 +304,17 @@ class SingleGateNoise:
 
         assert p < 1
         kraus_ops = [
-            np.kron(X, X),
-            np.kron(Y, Y),
-            np.kron(Z, Id),
-            np.kron(Id, Z),
-            np.kron(Z, Z),
-            np.kron(X, Y),
-            np.kron(Y, X),
+            ("XX", np.kron(X, X)),
+            ("YY", np.kron(Y, Y)),
+            ("ZI", np.kron(Z, Id)),
+            ("IZ", np.kron(Id, Z)),
+            ("ZZ", np.kron(Z, Z)),
+            ("XY", np.kron(X, Y)),
+            ("YX", np.kron(Y, X)),
         ]
         mg_list = []
-        for kraus in kraus_ops:
-            mg_list.append(MatchGate.from_unitary(kraus))
+        for name, kraus in kraus_ops:
+            mg_list.append(MatchGate.from_unitary(kraus, name=name))
         return SingleGateNoise([(mg, p / 7) for mg in mg_list], 1 - p)
 
     @classmethod

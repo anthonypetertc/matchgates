@@ -1,7 +1,10 @@
 "Module for Circuit classes."
 
+from collections import Counter
 from multiprocessing import Pool
 import os
+import warnings
+
 import numpy as np
 import matchgates.matchgate as MG
 from matchgates.observables import Observable
@@ -171,20 +174,28 @@ class NoisyCircuit:
         Returns
         -------
         dict
-        Dictionary of expectation values of observables."""
+            Dictionary of expectation values of observables.
+        hash_counts
+            Counts of all trajctory hashes.
+        """
         results_dict = {}
         for obs in observables:
             results_dict[obs.name + str(obs.qubits)] = 0
         reps_per_job = reps // n_jobs
         args = [[observables, reps_per_job, state] for i in range(n_jobs)]
+        all_hashes = []
         with Pool(n_jobs) as p:
             results = p.starmap(self.single_run, args)
-            for result in results:
+            for result, traj_hashes in results:
+                all_hashes.extend(traj_hashes)
                 for i, obs in enumerate(observables):
                     results_dict[obs.name + str(obs.qubits)] += (
                         1 / n_jobs * result[obs.name + str(obs.qubits)]
                     )
-        return results_dict
+        
+        hash_counts = Counter(all_hashes)
+                
+        return results_dict, hash_counts
 
     def single_run(self, observables: list[Observable], reps: int, state: ProductState):
         """Simulates noisy circuit for a single run and returns expectation values of observables.
@@ -201,27 +212,40 @@ class NoisyCircuit:
         Returns
         -------
         dict
-            Dictionary of expectation values of observables."""
+            Dictionary of expectation values of observables.
+        traj_hashes
+            List of hashes of trajectories that were sampled.
+        """
         np.random.seed(int.from_bytes(os.urandom(4), byteorder="little"))
         n_qubits = self.n_qubits
         gate_list = self.noisy_gate_list
         results_dict = {}
         for obs in observables:
             results_dict[obs.name + str(obs.qubits)] = 0
+        
+        traj_hashes = []
         for _ in range(reps):
-            T = self.make_noisy_T(gate_list[0])
+            T, traj_hash = self.make_noisy_T(gate_list[0])
             for gate in gate_list[1:]:
                 assert (
                     gate.applied_match_gate.n_qubits == n_qubits
                 ), "Invalid gate list, \
                     gates don't act on same number qubits as circuit."
-                noisy_T = self.make_noisy_T(gate)
+                noisy_T, choice = self.make_noisy_T(gate)
                 T = noisy_T @ T
-            for obs in observables:
-                results_dict[obs.name + str(obs.qubits)] += (
-                    1 / reps * obs.compute_expectation(T, state)
-                )
-        return results_dict
+                traj_hash += choice
+
+            # Suppress warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                for obs in observables:
+                    results_dict[obs.name + str(obs.qubits)] += (
+                        1 / reps * obs.compute_expectation(T, state)
+                    )
+
+            traj_hashes.append(traj_hash)
+
+        return results_dict, traj_hashes
 
     def make_noisy_T(self, gate: MG.NoisyAppliedMatchGate):
         """Adds noise to a gate and returns the matrix representation of the noisy gate.
@@ -234,7 +258,10 @@ class NoisyCircuit:
         Returns
         -------
         np.ndarray
-            Matrix representation of noisy gate."""
+            Matrix representation of noisy gate.
+        choice
+            The Kraus operator chosen.    
+        """
         noise = gate.noise
         amg = gate.applied_match_gate
         T = amg.T
@@ -244,4 +271,7 @@ class NoisyCircuit:
         if gate_noise != "I":
             applied_noise = MG.AppliedMatchGate(gate_noise, amg.n_qubits, amg.acts_on)
             T = applied_noise.T @ T
-        return T
+            name = gate_noise.name
+        else:
+            name = "I"
+        return T, name
