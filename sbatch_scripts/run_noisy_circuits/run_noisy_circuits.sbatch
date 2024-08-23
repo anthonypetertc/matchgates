@@ -2,7 +2,7 @@
 
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
-#SBATCH --mem=200000
+#SBATCH --mem=175000
 #SBATCH --exclude=gh1,gh2
 
 #SBATCH --output=stdout.txt
