@@ -16,7 +16,4 @@ dependencies = [
     "numpy>=2.1.0",
     "scipy>=1.14.1",
     "pytest >= 8.1.1",
-    "pre-commit",
-    typing_extensions==3.10.0.2,
-    pandas==2.2.2
 ]
